@@ -10,10 +10,11 @@ Welcome to modelhouse's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   usage
-   modeltypes
-   license
-   help
+    overview
+    usage
+    modeltypes
+    license
+    help
 
 
 Indices and tables

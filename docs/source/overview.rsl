@@ -1,0 +1,30 @@
+Overview
+============
+``modelhouse`` facilitates easy creation and downloading of computational models
+from diverse storage backends (Google Storage, AWS S3, local harddrive).
+First, the user creates a ``model type`` by proding code, data, and other
+necessary specification to create an instance of the ``model type``. The new 
+model type is stored in a location specified by the user. Then, the user
+can create instanes of the new ``model type`` by specifing location where
+the model type is stored and constructor parameters. Models of the same type
+can only differ in the values of constructor parameters, and cannot differ in 
+code/weights files.
+
+To enable greater code reusability, the model specification is broken 
+into two parts: ``parser type`` and ``model materials``.
+``parser type`` specifies the parser that is going to be used to turn
+``model materials`` into models. ``modelhouse`` comes with several 
+built-in parsers, and the user can create custom parsers as well. 
+`model materials` is a folder that contains code, data, weights, etc 
+that are required to create a model. 
+
+
+Example
+-------
+TODO
+
+Terms
+-----
+- Model Materials 
+- Model Type
+- Model
