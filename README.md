@@ -11,7 +11,7 @@ With `modelhouse`, you can store and load your models from different storage bac
 ```pip install modelhouse```
 
 ## Documentation
-TODO
+For documentation, please visit https://modelhouse.readthedocs.io/en/latest/
 
 ## Getting started
 TODO
