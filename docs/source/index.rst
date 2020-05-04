@@ -9,7 +9,8 @@ Welcome to modelhouse's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   usage
+   model types
    license
    help
 
