@@ -27,7 +27,7 @@ from .interfaces import (
 )
 
 def get_interface_class(protocol):
-    if protocol == 'file':
+    if protocol == 'file' or progocol[0] == '.':
         return FileInterface
     elif protocol == 'gs':
         return GoogleCloudStorageInterface
@@ -36,7 +36,7 @@ def get_interface_class(protocol):
     elif protocol in ('http', 'https'):
         return HttpInterface
     else:
-        raise NotImplementedError("Unsupported protocol: ", str(self._path))
+        raise NotImplementedError("Unsupported protocol: ", str(protocol))
 
 def default_byte_iterator(starts, ends):
     if starts is None:
@@ -51,6 +51,8 @@ class StorageBase(object):
         self.progress = progress
 
         self._layer_path = layer_path
+        if layer_path[0] in ['~', '.', '/']:
+            layer_path = 'file://' + layer_path
         self._path = cloudvolume.paths.extract(layer_path)
         self._interface_cls = get_interface_class(self._path.protocol)
 

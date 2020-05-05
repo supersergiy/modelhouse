@@ -1,35 +1,21 @@
 import click
 from modelhouse.storage import Storage
+from modelhouse.storage import get_files_and_contents, put_files_and_contents
+
 
 @click.command()
-@click.option('--model_materials_dir', '-m', type=click.Path(exists=True))
-@click.option('--destination_path', '-p', nargs=1, type=str, default=None)
-def create(model_materials_dir, destination_path):
+@click.option('--src_path', '-s', nargs=1, type=str, required=True)
+@click.option('--dst_path', '-d', nargs=1, type=str, required=True)
+def create(src_path, dst_path):
+    files_and_contents = get_files_and_contents(src_path)
 
-    uplodable_files = []
-    for dir_path, _, files in os.walk(root_dir):
-        rel_dir = os.path.relpath(dir_path, model_materials_dir)
-
-        for file_abspath in files:
-            file_name = os.path.basename(file_name)
-            file_relpath = os.path.join(rel_dir, file_abspath)
-            with open(file_abspath, 'r') as f:
-                file_contents = f.read()
-            uploadable_files.append((file_relpath, file_contents))
-
-    store = Storage(destination_path)
-    store.put_files(
-            uploadable_files,
-            content_type='application/octet-stream',
-            compress='gzip',
-            cache_control='no-cache'
-    )
+    put_files_and_contents(dst_path, files_and_contents)
     print ("Model successfully created")
 
 @click.command()
-@click.option('--model_path', '-p', nargs=1, type=str)
-def delete(model_path):
-    store = Storage(model_path)
+@click.option('--src_path', '-s', nargs=1, type=str)
+def delete(src_path):
+    store = Storage(src_path)
     files = store.list_files(flat=False)
     store.delete_files(files)
 

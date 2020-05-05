@@ -16,24 +16,11 @@ import google.cloud.exceptions
 from google.cloud.storage import Batch, Client
 import requests
 import tenacity
-
+import time
 
 from .connectionpools import S3ConnectionPool, GCloudBucketPool
 
 COMPRESSION_EXTENSIONS = ('.gz', '.br')
-
-def mkdir(path):
-    path = toabs(path)
-
-    try:
-        if path != '' and not os.path.exists(path):
-            os.makedirs(path)
-    except OSError as e:
-        if e.errno == 17: # File Exists
-            time.sleep(0.1)
-            return mkdir(path)
-        else:
-            raise
 
 # This is just to support pooling by bucket
 class keydefaultdict(defaultdict):
@@ -84,7 +71,7 @@ class FileInterface(StorageInterface):
         cache_control=None
     ):
         path = self.get_path_to_file(file_path)
-        mkdir(os.path.dirname(path))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
 
         # keep default as gzip
         if compress == "br":

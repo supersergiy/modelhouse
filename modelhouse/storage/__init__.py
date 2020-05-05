@@ -28,3 +28,4 @@ from .interfaces import reset_connection_pools
 # For backwards compatibility
 Storage = ThreadedStorage
 from .secretmanager import secret_manager
+from .file_operations import get_files_and_contents, put_files_and_contents
