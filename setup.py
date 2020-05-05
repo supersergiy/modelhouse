@@ -18,4 +18,9 @@ setuptools.setup(
       'numpy'
     ],
     packages=setuptools.find_packages(),
+    entry_points={
+    "console_scripts": [
+            "modelhouse= modelhouse.main:cli"
+        ]
+    }
 )
