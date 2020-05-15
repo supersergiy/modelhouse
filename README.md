@@ -15,3 +15,10 @@ For documentation, please visit https://modelhouse.readthedocs.io/en/latest/
 
 ## Getting started
 TODO
+
+## TODO:
+
+1) implement model caching through https://cachetools.readthedocs.io/en/stable/#module-cachetools
+2) test cloud download/upload
+3) finish documentation
+4) test different secret folder
