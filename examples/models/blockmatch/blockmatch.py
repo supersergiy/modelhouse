@@ -183,7 +183,7 @@ def extrapolate_missing_values(array):
     return array
 
 def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_px=500,
-                filler="inf"):
+                filler="inf", r_delta=1.1):
     src = src.squeeze()
     tgt = tgt.squeeze()
 
@@ -233,7 +233,7 @@ def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_p
                                       ncc_np[peak2[0][0],  peak2[0][1]],
                                     ])
                     peak_ratios.append(peak_vals[-1][0] / (peak_vals[-1][1] + 1e-5))
-                    if peak_ratios[-1] < 1.1:
+                    if peak_ratios[-1] < r_delta:
                         match_displacement = [float(filler), float(filler)]
                     else:
                         match_tile_start = (tgt_tile_coord[0].start + match[0], tgt_tile_coord[1].start + match[1])
@@ -245,7 +245,7 @@ def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_p
 
     patched_result = extrapolate_missing_values(result)
 
-    result_var = torch.cuda.FloatTensor(patched_result).unsqueeze(0)
+    result_var = torch.FloatTensor(patched_result).to(src.device).unsqueeze(0)
 
     scale = tgt.shape[-2] / result_var.shape[-2]
     result_ups_var = torch.nn.functional.interpolate(result_var.permute(0, 3, 1, 2),

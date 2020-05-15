@@ -8,76 +8,24 @@ from residuals import combine_residuals
 
 from pdb import set_trace as st
 
-def lap(fields):
+def lap(fields, device='cpu'):
     def dx(f):
-        p = Variable(torch.zeros((1,1,f.size(1),2))).cuda()
+        p = Variable(torch.zeros((1,1,f.size(1),2))).to(device)
         return torch.cat((p, f[:,1:-1,:,:] - f[:,:-2,:,:], p), 1)
     def dy(f):
-        p = Variable(torch.zeros((1,f.size(1),1,2))).cuda()
+        p = Variable(torch.zeros((1,f.size(1),1,2))).to(device)
         return torch.cat((p, f[:,:,1:-1,:] - f[:,:,:-2,:], p), 2)
     def dxf(f):
-        p = Variable(torch.zeros((1,1,f.size(1),2))).cuda()
+        p = Variable(torch.zeros((1,1,f.size(1),2))).to(device)
         return torch.cat((p, f[:,1:-1,:,:] - f[:,2:,:,:], p), 1)
     def dyf(f):
-        p = Variable(torch.zeros((1,f.size(1),1,2))).cuda()
+        p = Variable(torch.zeros((1,f.size(1),1,2))).to(device)
         return torch.cat((p, f[:,:,1:-1,:] - f[:,:,2:,:], p), 2)
     fields = map(lambda f: [dx(f), dy(f), dxf(f), dyf(f)], fields)
     fields = map(lambda fl: (sum(fl) / 4.0) ** 2, fields)
     field = sum(map(lambda f: torch.sum(f, -1), fields))
     return field
 
-
-def jacob(fields):
-    def dx(f):
-        p = Variable(torch.zeros((f.size(0),1,f.size(1),2))).cuda()
-        return torch.cat((p, f[:,2:,:,:] - f[:,:-2,:,:], p), 1)
-    def dy(f):
-        p = Variable(torch.zeros((f.size(0),f.size(1),1,2))).cuda()
-        return torch.cat((p, f[:,:,2:,:] - f[:,:,:-2,:], p), 2)
-    fields = sum(map(lambda f: [dx(f), dy(f)], fields), [])
-    field = torch.sum(torch.cat(fields, -1) ** 2, -1)
-    return field
-
-
-def cjacob(fields):
-    def center(f):
-        fmean_x, fmean_y = torch.mean(f[:,:,:,0]).data[0], torch.mean(f[:,:,:,1]).data[0]
-        fmean = torch.cat((fmean_x * torch.ones((1,f.size(1), f.size(2),1)), fmean_y * torch.ones((1,f.size(1), f.size(2),1))), 3)
-        fmean = Variable(fmean).cuda()
-        return f - fmean
-
-    def dx(f):
-        p = Variable(torch.zeros((1,1,f.size(1),2))).cuda()
-        d = torch.cat((p, f[:,2:,:,:] - f[:,:-2,:,:], p), 1)
-        return center(d)
-    def dy(f):
-        p = Variable(torch.zeros((1,f.size(1),1,2))).cuda()
-        d = torch.cat((p, f[:,:,2:,:] - f[:,:,:-2,:], p), 2)
-        return center(d)
-
-    fields = sum(map(lambda f: [dx(f), dy(f)], fields), [])
-    field = torch.sum(torch.cat(fields, -1) ** 2, -1)
-    return field
-
-
-def njacob(fields):
-    f = fields[0]
-    f2 = torch.tensor(f, requires_grad=True)
-    f2[:, :, :, 0] = f[:, :, :, 0] / torch.mean(torch.abs(f[:, :, :, 0]))
-    f2[:, :, :, 1] = f[:, :, :, 1] / torch.mean(torch.abs(f[:, :, :, 1]))
-    return jacob([f2])
-
-
-def tv(fields):
-    def dx(f):
-        p = Variable(torch.zeros((1,1,f.size(1),2))).cuda()
-        return torch.cat((p, f[:,2:,:,:] - f[:,:-2,:,:], p), 1)
-    def dy(f):
-        p = Variable(torch.zeros((1,f.size(1),1,2))).cuda()
-        return torch.cat((p, f[:,:,2:,:] - f[:,:,:-2,:], p), 2)
-    fields = sum(map(lambda f: [dx(f), dy(f)], fields), [])
-    field = torch.sum(torch.abs(torch.cat(fields, -1)), -1)
-    return field
 
 
 def field_dx(f, forward=False):
@@ -114,7 +62,7 @@ def rigidity_score(field_delta, tgt_length, power=2):
     spring_deformations = (spring_lengths - tgt_length).abs() ** power
     return spring_deformations
 
-def pix_identity(size, batch=1, device='cuda'):
+def pix_identity(size, batch=1, device='cpu'):
     result = torch.zeros((batch, size, size, 2), device=device)
     x = torch.arange(size, device=device)
     result[:, :, :, 1] = x
@@ -124,7 +72,7 @@ def pix_identity(size, batch=1, device='cuda'):
     return result
 
 def rigidity(field, power=2):
-    identity = pix_identity(size=field.shape[-2])
+    identity = pix_identity(size=field.shape[-2], device=field.device)
     field_abs = field + identity
 
     result = rigidity_score(field_dx(field_abs, forward=False), 1, power=power)
@@ -165,7 +113,7 @@ def smoothness_penalty(ptype='jacob'):
 def supervised_loss(src_var, tgt_var, true_res,
                     pred_res, pred_tgt, threshold=0):
     diff = torch.abs(true_res - pred_res)
-    mask = torch.abs(true_res) >= torch.Tensor([threshold]).cuda()
+    mask = torch.abs(true_res) >= torch.Tensor([threshold])
     masked_diff = diff * mask.float()
     return torch.mean(masked_diff**2)
 
@@ -268,7 +216,7 @@ def vector_magnitude(src_var, tgt_var, true_res, pred_res, pred_tgt):
 def vector_similarity_score(src_var, tgt_var, true_res,
                             pred_res, pred_tgt, masks, threshold=0):
     diff = torch.abs(true_res - pred_res)
-    mask = torch.abs(true_res) >= torch.Tensor([threshold]).cuda()
+    mask = torch.abs(true_res) >= torch.Tensor([threshold])
     masked_diff = diff * mask.float()[..., :, :]
     mean_diff = torch.mean(torch.abs(diff))
     mean_diff_small = torch.mean(torch.abs(masked_diff[..., 20:-20, 20:-20, :]))
@@ -324,7 +272,7 @@ def unsupervised_loss(smoothness_factor, smoothness_type='rig', use_defect_mask=
         loss_dict['similarity'] = similarity
         loss_dict['smoothness'] = smoothness * smoothness_factor * smoothness_mult
         loss_dict['vec_magnitude'] = torch.mean(torch.abs(bundle['pred_res']))
-        loss_dict['vec_sim'] = torch.cuda.FloatTensor([0])
+        loss_dict['vec_sim'] = torch.FloatTensor([0])
         if 'res' in bundle:
             loss_dict['vec_sim'] = torch.mean(torch.abs(bundle['pred_res'] - bundle['res']))
         return loss_dict
