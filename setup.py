@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="modelhouse",
-    version="0.0.2",
+    version="0.0.4",
     author="Sergiy Popovych",
     author_email="sergiy.popovich@gmail.com",
     description="Easy model distribution for inference.",

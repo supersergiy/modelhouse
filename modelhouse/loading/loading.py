@@ -22,7 +22,6 @@ def import_file(module_name, file_path):
 
 def uncached_load_model(path, **params):
     # create temp dir
-    print ("LOADING MODELLLLLLLLL")
     tmp_dir_path = tempfile.mkdtemp(dir=modelhouse.MODELHOUSE_TMP_FILES_DIR)
 
     files_and_contents = get_files_and_contents(path)
