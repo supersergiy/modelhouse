@@ -1,11 +1,11 @@
 import torch
 
+import numpy as np
 import itertools
 import copy
 
-import numpy as np
+
 def get_peak(x, eps=1.E-3, randomize=False):
-    # x_in is shape BxXxY
     d = x.shape[-1]
     peak = torch.zeros((x.shape[0], 2), device=x.device, dtype=torch.long)
 
@@ -26,6 +26,7 @@ def get_peak(x, eps=1.E-3, randomize=False):
             peak[b, 1] = initial_peak[1]
     return peak
 
+
 def zone_out_around_peak(x, peak, zone_dist, fill=None):
     if fill == None:
         fill = float("-inf")
@@ -38,6 +39,7 @@ def zone_out_around_peak(x, peak, zone_dist, fill=None):
         y_high = min(peak[b, 1] + zone_dist + 1, d)
         zoned_x[b, x_low:x_high, y_low:y_high] = fill
     return zoned_x
+
 
 def get_two_peaks(x_in, zone_dist=1, eps=1.E-3):
     # x_in is shape BxXxY
@@ -54,6 +56,7 @@ def get_black_mask(img, black_threshold):
         black_mask = img <= black_threshold
     return black_mask
 
+
 def get_black_fraction(img, black_threshold):
     img_black_px = get_black_mask(img, black_threshold)
     img_black_px_count = torch.sum(img_black_px)
@@ -62,10 +65,11 @@ def get_black_fraction(img, black_threshold):
 
     return img_black_fraction
 
+
 def normalize(img, per_feature_center=True, per_feature_var=False, eps=1e-5,
         mask=None, mask_fill=None):
     img_out = img.clone()
-    #with torch.no_grad():
+
     if mask is not None:
         assert mask.shape == img.shape
     for i in range(1):
@@ -108,6 +112,7 @@ def normalize(img, per_feature_center=True, per_feature_var=False, eps=1e-5,
 
     return img_out
 
+
 def get_index_neighbors(index, shape, diagonals=False, reach=1):
     result = []
 
@@ -126,6 +131,7 @@ def get_index_neighbors(index, shape, diagonals=False, reach=1):
            new_index[0] < shape[0] and new_index[1] < shape[1]:
                result.append(new_index)
     return result
+
 
 def get_neighbor_average(index, field):
     neighbors = get_index_neighbors(index, field.shape)
@@ -151,10 +157,12 @@ def get_neighbor_average(index, field):
     else:
         return 0
 
+
 def extrapolate_field_missing_values(field):
     field[..., 0] = extrapolate_missing_values(field[..., 0])
     field[..., 1] = extrapolate_missing_values(field[..., 1])
     return field
+
 
 def extrapolate_missing_values(array):
     missing_map = (np.isnan(array) + np.isinf(array)) > 0
@@ -181,6 +189,7 @@ def extrapolate_missing_values(array):
 
 
     return array
+
 
 def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_px=500,
                 filler="inf", r_delta=1.1):
@@ -214,7 +223,6 @@ def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_p
                 match_displacement = [0, 0]
                 if get_black_fraction(src_tile, 0) != 1.0 and \
                         get_black_fraction(tgt_tile, 0) != 1.0:
-                    #print ('skipping: {} {}'.format(get_black_fraction(src_tile, 0), get_black_fraction(tgt_tile, 0)))
                     pass
             else:
                 ncc = get_ncc(tgt_tile, src_tile, div_by_overlap=True,
@@ -222,9 +230,7 @@ def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_p
                 ncc_np = ncc.squeeze().cpu().numpy()
 
                 if ncc.var() < 1E-13 or ((ncc != ncc).sum() > 0):
-                    #match_displacement = [0, 0]
                     match_displacement = [float(filler), float(filler)]
-                    #print ("black ncc")
                 else:
                     peak1, peak2 = get_two_peaks(ncc, 8)
                     peaks.append([peak1, peak2])
@@ -252,21 +258,21 @@ def block_match(tgt, src, tile_size=16, tile_step=16, max_disp=10, min_overlap_p
             scale_factor=scale, mode='bicubic')
 
     final_result_var = result_ups_var
-    #final_result_var = filter_black_field(final_result_var, src, black_threshold=0.1)
 
     final_result = final_result_var.permute(0, 2, 3, 1)
     return final_result
+
 
 def filter_black_field(field, img, black_threshold=0):
     black_mask = (img.abs() < black_threshold).squeeze()
     field[..., black_mask] = 0
     return field
 
+
 def get_ncc(tgt, tmpl, div_by_overlap=False, min_overlap_ratio=0.6,
             min_overlap_count=500):
     tgt = tgt.unsqueeze(0).unsqueeze(0)
     tmpl = tmpl.unsqueeze(0).unsqueeze(0)
-    #import pdb; pdb.set_trace()
 
     mask_val = 0.05
     tgt_mask = tgt.abs() > mask_val
@@ -283,9 +289,9 @@ def get_ncc(tgt, tmpl, div_by_overlap=False, min_overlap_ratio=0.6,
         ncc[overlap_count != 0] = adjusted_ncc[overlap_count != 0]
         ncc[overlap_count < min_overlap_count] = ncc.min()
         ncc[overlap_ratio < min_overlap_ratio] = ncc.min()
-        #print ("Bad overlap count: {}".format((overlap_ratio < min_overlap_ratio).sum()))
 
     return ncc
+
 
 def get_cc(target, template, feature_weights=None, normalize_cc=False, div_by_tmpl_size=True):
     cc_side = target.shape[-1] - template.shape[-1] + 1
@@ -293,21 +299,20 @@ def get_cc(target, template, feature_weights=None, normalize_cc=False, div_by_tm
             device=target.device, dtype=torch.float)
     for b in range(target.shape[0]):
         cc[b:b+1] = torch.nn.functional.conv2d(target[b:b+1], template[b:b+1]).squeeze()
-    #print (template.shape)
     if normalize_cc:
         cc = normalize(cc)
     elif div_by_tmpl_size:
         cc = cc / torch.sum(torch.ones_like(template[0], device=template.device))
-    #print (torch.mean(cc))
     return cc
+
 
 def get_displaced_tile(disp, tile):
     result = copy.deepcopy(tile)
     result[0].start += disp[0]
 
+
 def compute_tile_coords(x_tile, y_tile, tile_size, tile_step, max_disp, img_size,
                        x_offset=0, y_offset=0):
-    #import pdb; pdb.set_trace()
     src_xs = x_tile * tile_step + x_offset
     src_xe = src_xs + tile_size
     src_ys = y_tile * tile_step + y_offset
@@ -322,6 +327,7 @@ def compute_tile_coords(x_tile, y_tile, tile_size, tile_step, max_disp, img_size
     tgt_coords = (slice(tgt_xs, tgt_xe), slice(tgt_ys, tgt_ye))
 
     return src_coords, tgt_coords
+
 
 def get_patch_middle(coords):
     x_m = (coords[0].start - coords[0].end) / 2

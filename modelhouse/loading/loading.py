@@ -22,6 +22,7 @@ def import_file(module_name, file_path):
 
 def uncached_load_model(path, **params):
     # create temp dir
+    print ("LOADING MODELLLLLLLLL")
     tmp_dir_path = tempfile.mkdtemp(dir=modelhouse.MODELHOUSE_TMP_FILES_DIR)
 
     files_and_contents = get_files_and_contents(path)
@@ -31,5 +32,5 @@ def uncached_load_model(path, **params):
     creator_path = os.path.join(tmp_dir_path, "create.py")
     creator = import_file("create", creator_path)
     model = creator.create(**params)
-    #shutil.rmtree(tmp_dir_path)
+    shutil.rmtree(tmp_dir_path)
     return model

@@ -16,7 +16,7 @@ class SecretManager():
 
         HOME = os.path.expanduser('~')
         CLOUDVOLUME_DIR = os.path.join(HOME, '.cloudvolume')
-        self.secrets_folder = os.path.join(CLOUDVOLUME_DIR, ".secrets")
+        self.secrets_folder = os.path.join(CLOUDVOLUME_DIR, "secrets")
 
         self.project_name = self.get_default_google_project_name()
         self.google_credentials_cache = {}
@@ -56,7 +56,6 @@ class SecretManager():
     def get_google_credentials(self, bucket=None):
         if bucket in self.google_credentials_cache.keys():
             return self.google_credentials_cache[bucket]
-
         paths = []
         paths.append(self.get_secretfile_path('google-secret.json'))
         if bucket is not None:

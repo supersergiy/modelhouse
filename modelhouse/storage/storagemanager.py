@@ -27,7 +27,7 @@ from .interfaces import (
 )
 
 def get_interface_class(protocol):
-    if protocol == 'file' or progocol[0] == '.':
+    if protocol == 'file' or protocol[0] == '.':
         return FileInterface
     elif protocol == 'gs':
         return GoogleCloudStorageInterface
