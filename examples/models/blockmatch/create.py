@@ -12,9 +12,6 @@ class Model(nn.Module):
         self.max_disp = max_disp
         self.r_delta = r_delta
 
-    def __getitem__(self, index):
-        return None
-
     def forward(self, src_img, tgt_img, **kwargs):
         with torch.no_grad():
             pred_res = block_match(src_img, tgt_img, tile_size=self.tile_size,
