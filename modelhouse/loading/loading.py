@@ -3,6 +3,7 @@ import shutil
 import os
 import sys
 import importlib
+import json
 
 import modelhouse
 from modelhouse.storage import get_files_and_contents, put_files_and_contents
@@ -31,5 +32,9 @@ def uncached_load_model(path, **params):
     creator_path = os.path.join(tmp_dir_path, "create.py")
     creator = import_file("create", creator_path)
     model = creator.create(**params)
-    shutil.rmtree(tmp_dir_path)
+    #shutil.rmtree(tmp_dir_path)
     return model
+
+def uncached_load_model_str(path, params):
+    params = json.loads(params)
+    return uncached_load_model(path, **params)
