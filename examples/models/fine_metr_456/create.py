@@ -47,10 +47,13 @@ class Model(nn.Module):
 
     def forward(self, src_img, tgt_img, **kwargs):
         with torch.no_grad():
-            self.net = self.net.to(src_img.device)
+            if 'cuda' in str(src_img.device):
+                self.net = self.net.cuda(src_img.device)
+            else:
+                self.net = self.net.cpu()
 
             net_input = torch.cat((src_img, tgt_img), 1).float()
-            pred_res = self.net.forward(x=net_input, level_in=7)
+            pred_res = self.net.forward(x=net_input, level_in=4)
         return pred_res
 
 
