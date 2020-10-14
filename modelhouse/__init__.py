@@ -1,6 +1,6 @@
 import os
 
-from modelhouse.loading import load_model
+from modelhouse.loading import load_model, load_model_simple
 from modelhouse.utils import toabs
 
 MODELHOUSE_DIR = toabs('~/.modelhouse')
