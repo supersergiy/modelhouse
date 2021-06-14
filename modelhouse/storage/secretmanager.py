@@ -82,7 +82,7 @@ class SecretManager():
 
         return project_name, google_credentials
 
-    def aws_credentials(self, bucket=None, service='aws'):
+    def get_aws_credentials(self, bucket=None, service='aws'):
         if service == 's3':
             service = 'aws'
 
@@ -99,7 +99,6 @@ class SecretManager():
             paths.append(self.get_secretfile_path(bucket_secretfile))
 
         aws_credentials = {}
-        aws_credentials_path = secretpath(default_file_path)
         for aws_credentials_path in paths:
             if os.path.exists(aws_credentials_path):
                 with open(aws_credentials_path, 'r') as f:
