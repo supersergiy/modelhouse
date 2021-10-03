@@ -3,9 +3,9 @@ import os
 from . import Storage
 
 def get_files_and_contents(path):
-    store = Storage(path)
-    files = store.list_files(flat=False)
-    read_files = store.get_files(files)
+    with Storage(path) as store:
+        files = store.list_files(flat=False)
+        read_files = store.get_files(files)
 
     files_and_contents = []
     for read_file in read_files:
@@ -18,10 +18,10 @@ def get_files_and_contents(path):
     return files_and_contents
 
 def put_files_and_contents(path, files_and_contents):
-    store = Storage(path)
-    store.put_files(
-            files_and_contents,
-            content_type='application/octet-stream',
-            compress=None,
-            cache_control='no-cache'
-    )
+    with Storage(path) as store:
+        store.put_files(
+                files_and_contents,
+                content_type='application/octet-stream',
+                compress=None,
+                cache_control='no-cache'
+        )
