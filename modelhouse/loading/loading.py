@@ -32,7 +32,7 @@ def uncached_load_model(path, **params):
     creator_path = os.path.join(tmp_dir_path, "create.py")
     creator = import_file("create", creator_path)
     model = creator.create(**params)
-    #shutil.rmtree(tmp_dir_path)
+    shutil.rmtree(tmp_dir_path)
     return model
 
 def uncached_load_model_str(path, params):
