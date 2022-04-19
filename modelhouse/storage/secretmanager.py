@@ -75,7 +75,7 @@ class SecretManager():
 
         if google_credentials == None:
             warnings.warn('Using default Google credentials. \
-                    There is no {} google-secret.json set.'.format(secrets_folder))
+                    There is no {} google-secret.json set.'.format(self.secrets_folder))
         else:
             self.google_credentials_cache[bucket] = \
                     (project_name, google_credentials)
